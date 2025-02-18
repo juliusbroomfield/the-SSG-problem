@@ -204,7 +204,6 @@ def main():
 
     args = parser.parse_args()
 
-    # 1) Load dataset
     with open(args.data_file, "r", encoding="utf-8") as f:
         dataset = json.load(f)
 
