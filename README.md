@@ -48,11 +48,11 @@ AZURE_API_VERSION=2023-05-15
 
 ## 🚀 Usage
 
-The primary entry point is the `inferencing.py` script.
+The primary entry point is the `main.py` script.
 
 **Basic Usage:**
 ```bash
-poetry run python inferencing.py \
+poetry run python main.py \
   --data_file datasets/harmful/multiturn/dataset.json \
   --output_dir outputs/experiment1 \
   --model_name "gpt-4o-mini" \
@@ -76,14 +76,14 @@ poetry run python inferencing.py \
 
 ## 📊 Datasets
 
-### Multi-Turn Safety Dataset
+### Multi-Turn Dataset
 - **Size**: 24,816 examples
 - **Base**: 4,136 harmful instructions from AdvBench with conversational priming
 - **Languages**: English, Welsh, Tamil
 - **Variations**: Single-turn vs. multi-turn structures
 - **Benign Subset**: 2,400 examples (partially benign + completely benign)
 
-### Multi-Modal Safety Dataset
+### Multi-Modal Dataset
 - **Size**: 6,500 harmful examples + 90 benign examples  
 - **Categories**: Harmful Content, Malicious Activities, Dangerous Substances, Misinformation, Explicit Content
 - **Languages**: English, Welsh, Tamil
@@ -115,7 +115,7 @@ Each dataset entry contains:
 - **Category/Subcategory**: Classification labels
 - **Images**: Paths to associated image files
 
-### 📝 Output Format
+### Output Format
 
 Results are saved in both JSON and CSV formats:
 ```
