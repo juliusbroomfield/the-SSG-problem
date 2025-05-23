@@ -1,84 +1,140 @@
-# The Structural Safety Generalization Problem
+<h1 align="center">The Structural Safety Generalization Problem</h1>
+<h3 align="center">Findings of ACL 2025</h3>
+<p align='center' style="text-align:center;font-size:1em;">
+Julius Broomfield*¹, Tom Gibbs*², Ethan Kosak-Hine*², George Ingebretsen*³, Tia Nasir, Jason Zhang⁴, Reihaneh Iranmanesh³, Sara Pieri⁵, Reihaneh Rabbany²'⁶, Kellin Pelrine²'⁶
+</p>
+<p align='center' style="text-align:center;font-size:0.8em;">
+¹Georgia Tech, ²Mila, ³UC Berkeley, ⁴Stanford, ⁵MBZUAI, ⁶McGill
+</p>
 
-This repository contains code and data for "The Structural Safety Generalization Problem"
+[![arXiv](https://img.shields.io/badge/arXiv-2504.09712-b31b1b.svg?style=flat)](https://arxiv.org/abs/2504.09712)
 
-## Code and Resources
+## 📖 Abstract
 
-The primary entry point is the `inferencing.py` script. You can run it from the command line with various options. For example:
+LLM jailbreaks remain a major safety challenge. We tackle this by focusing on a specific failure mode: safety mechanisms don't generalize well across semantically equivalent inputs. Our approach identifies attacks that are explainable and transferable across both models and goals.
 
-```bash
-python inferencing.py \
-  --data_file path/to/your/dataset.json \
-  --output_dir outputs/experiment1 \
-  --model_name "gpt-4o-mini" \
-  --api_key your_api_key_here \
-  --runs 3 \
-  --methods "Perturbed Decomposition" \
-  --use_guardrail \
-  --strongreject \
-  --strongreject_model "gpt-4o" \
-  --strongreject_prompt path/to/custom_strongreject_prompt.txt
+Through red-teaming, we discovered new vulnerabilities using multi-turn conversations, multiple images, and translation-based attacks. Different input structures lead to different safety outcomes. Based on these findings, we developed a Structure Rewriting Guardrail that converts inputs into formats better suited for safety assessment. This defense significantly improves rejection of harmful inputs without over-blocking legitimate ones.
+
+By targeting this intermediate challenge—more achievable than universal defenses but crucial for long-term safety—we establish an important milestone for AI safety research.
+
+## ⚙️ Installation
+
+This project uses Poetry for dependency management and packaging.
+
+### 1. Clone the repository.
+   
+   ```bash
+    git clone https://github.com/juliusbroomfield/the-SSG-problem.git
+    cd the-SSG-problem
+   ```
+
+### 2. Install the required packages.
+   
+   ```bash
+   poetry install
+   ```
+### 3. Configure API Keys
+Create a .env file in the project root and add your LLM provider API keys and other neccessary parameters. 
+
+This project uses [LiteLLM](https://docs.litellm.ai/docs/). A list of supported models and providers can be found at https://docs.litellm.ai/docs/providers.
+
+For example, if using Azure OpenAI:
+
+ ```bash
+AZURE_API_KEY=my-azure-api-key
+AZURE_API_BASE=https://example-endpoint.openai.azure.com
+AZURE_API_VERSION=2023-05-15
 ```
 
-### Command-Line Options
+## 🚀 Usage
 
-- **--data_file**: Path to the JSON dataset.
-- **--output_dir**: Directory where JSON and CSV results will be saved.
-- **--model_name**: The name of the model to use (any model supported by your LLM wrapper).
-- **--api_key**: API key (if not provided, the script will look for `LLM_API_KEY` in the environment).
-- **--use_guardrail**: Wraps the base LLM in a guardrail (for prompt canonicalization and refusal detection).
-- **--strongreject**: After generating responses, run strongreject evaluation to produce scores and reasonings.
-- **--strongreject_model**: Which model to use for strongreject evaluation.
-- **--strongreject_prompt**: Path to a custom strongreject evaluator prompt.
-- **--methods**: A list of method names (as defined in the dataset’s "Type" field) to process. If omitted, the script processes all entries.
-- **--runs**: Number of responses (runs) to generate per entry.
+The primary entry point is the `inferencing.py` script.
 
-### Output Files
+**Basic Usage:**
+```bash
+poetry run python inferencing.py \
+  --data_file datasets/harmful/multiturn/dataset.json \
+  --output_dir outputs/experiment1 \
+  --model_name "gpt-4o-mini" \
+  --runs 3
+```
 
-Results are saved in both JSON and CSV formats with filenames in the format:
+### Command-Line Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `--data_file` | Path to the JSON dataset |
+| `--output_dir` | Directory for saving results |
+| `--model_name` | Model to evaluate |
+| `--api_key` | API key |
+| `--use_guardrail` | Enable guardrail wrapper for refusal detection |
+| `--strongreject` | Run StrongReject safety evaluation |
+| `--strongreject_model` | Model for safety evaluation |
+| `--strongreject_prompt` | Custom safety evaluation prompt |
+| `--methods` | Specific method types to process |
+| `--runs` | Number of response generations per prompt |
+
+## 📊 Datasets
+
+### Multi-Turn Safety Dataset
+- **Size**: 24,816 examples
+- **Base**: 4,136 harmful instructions from AdvBench with conversational priming
+- **Languages**: English, Welsh, Tamil
+- **Variations**: Single-turn vs. multi-turn structures
+- **Benign Subset**: 2,400 examples (partially benign + completely benign)
+
+### Multi-Modal Safety Dataset
+- **Size**: 6,500 harmful examples + 90 benign examples  
+- **Categories**: Harmful Content, Malicious Activities, Dangerous Substances, Misinformation, Explicit Content
+- **Languages**: English, Welsh, Tamil
+- **Structural Variations**: 
+  - Plain text vs. unperturbed & perturbed variants
+  - Composite & decomposite variants
+  - Color substitution cipher
+  - Image-based prompt decomposition
+
+### Dataset Structure
+```
+datasets/
+├── harmful/
+│   ├── multiturn/
+│   │   └── dataset.json
+│   └── multimodal/
+│       ├── dataset.json
+│       └── images/
+└── benign/
+    ├── multiturn/
+    └── multimodal/
+```
+
+Each dataset entry contains:
+- **ID**: Unique identifier
+- **Type**: Method/variation type
+- **Prompt**: Input text (may reference images)
+- **Full Phrase**: Original English instruction
+- **Category/Subcategory**: Classification labels
+- **Images**: Paths to associated image files
+
+### 📝 Output Format
+
+Results are saved in both JSON and CSV formats:
 ```
 {model_name}-{timestamp}.json
 {model_name}-{timestamp}.csv
 ```
 
-## Datasets
+## 🤝 Citation
 
-### Multi-Turn Datasets
+If you find our work helpful, please cite our paper:
 
-1. **Harmful Dataset**  
-   - **Total Size**: 24,816 examples  
-   - **Source**: 4,136 unique harmful instructions from AdvBench, augmented with priming to produce a range of malicious requests.  
-   - **Language Settings**: Cipher, Welsh, Tamil  
-   - **Structure Variations**: Single-Turn vs. Multi-Turn  
-
-2. **Benign Dataset**  
-   - **Partially Benign**: 1,200 user instructions that are non-harmful but contain toxic words.  
-   - **Completely Benign**: 1,200 user instructions with no harmful or toxic content.  
-
-### Multi-Modal Datasets
-
-1. **Harmful Dataset**  
-   - **Total Size**: 6,500 examples  
-   - **Base Instructions**: 500 unique harmful instructions generated by GPT-4o and Dolphin Mixtral across 5 categories (Harmful Content, Malicious Activities, Dangerous Substances, Misinformation, Explicit Content).  
-   - **Language Settings**: English, Welsh, Tamil  
-   - **Structure Variations**:  
-     - Plain text vs. unperturbed & perturbed variants vs. composite & decomposite variants vs. color substitution cipher
-     - Welsh and Tamil only include plain text and unperturbed variants
-
-2. **Benign Dataset**  
-   - **Total Size**: 90 unique benign instructions  
-   - **Structure Variations**:  
-     - Decomposed Color Substitution Cipher & Perturbed Decomposed Images
-
-### Organization and Access
-
-1. **Multi-Turn** data is stored primarily under `datasets/[benign|harmful]/multiturn/`.
-2. **Multi-Modal** data is stored primarily under `datasets/[benign|harmful]/multimodal/`.
-3. Each dataset folder may contain a `dataset.json` file, which'll reference image paths (if applicable) and relevant fields:
-   - **ID**  
-   - **Type**
-   - **Prompt** (text, sometimes referencing images)  
-   - **Full Phrase** (the instruction itself as English text)
-   - **Category**
-   - **Subcategory**  
-   - **Images** (paths to PNG files)
+```bibtex
+@misc{broomfield2025structuralsafetygeneralizationproblem,
+      title={The Structural Safety Generalization Problem}, 
+      author={Julius Broomfield and Tom Gibbs and Ethan Kosak-Hine and George Ingebretsen and Tia Nasir and Jason Zhang and Reihaneh Iranmanesh and Sara Pieri and Reihaneh Rabbany and Kellin Pelrine},
+      year={2025},
+      eprint={2504.09712},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR},
+      url={https://arxiv.org/abs/2504.09712}, 
+}
+```
